@@ -13,9 +13,12 @@ class Board:
 
     def __init__(self, cells: tuple) -> None:
         self.cells = cells
-        self.board = self.draw_board()
+        self.board = None
 
-    def draw_board(self):
+    def new_board(self):
+        if self.board:
+            self.board.close()
+
         board = Image.new(
             'RGB', 
             (self.SIDE_SIZE, self.SIDE_SIZE),
@@ -59,20 +62,20 @@ class Board:
             )
             y += 1
 
-    def draw_live_cells(self, live_cells):
-        self.board = self.draw_board()
+    def draw_board(self, live_cells):
+        self.board = self.new_board()
 
         x_cell_width = round(self.SIDE_SIZE / self.cells[0])
         y_cell_width = round(self.SIDE_SIZE / self.cells[1])
 
         for cell in live_cells:
             top_left = (
-                cell[0] * x_cell_width + 1,
-                cell[1] * y_cell_width + 1,
+                cell[1] * x_cell_width + 1,
+                cell[0] * y_cell_width + 1,
             )
             bottom_right = (
-                cell[0] * x_cell_width + x_cell_width - 1,
-                cell[1] * y_cell_width + y_cell_width - 1,
+                cell[1] * x_cell_width + x_cell_width - 1,
+                cell[0] * y_cell_width + y_cell_width - 1,
             )
             self.draw.rectangle(
                 (top_left, bottom_right),
