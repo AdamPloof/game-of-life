@@ -1,5 +1,6 @@
 import numpy as np
 import time
+import json
 from board import Board
 
 class GameOfLife:
@@ -69,21 +70,12 @@ class GameOfLife:
     
 
 def main():
-    # starting_cells = [
-    #     (1, 2),
-    #     (1, 3),
-    #     (2, 1),
-    #     (5, 4),
-    #     (6, 4),
-    #     (6, 5),
-    #     (7, 4),
-    # ]
-    starting_cells = [
-        (3, 3),
-        (3, 4),
-        (3, 5),
-    ]
-    dimensions = (9, 9)
+    with open('./starting_positions/135-degree MWSS-to-G.json') as start_f:
+        start_pos = json.load(start_f)
+
+    starting_cells = [(cell[0], cell[1]) for cell in start_pos]
+
+    dimensions = (100, 100)
     game = GameOfLife(dimensions, starting_cells)
     board = Board(dimensions)
     board.draw_board(game.live_cells)
@@ -93,7 +85,7 @@ def main():
         game.next_generation()
         board.draw_board(game.live_cells)
         board.show_board()
-        time.sleep(1)
+        time.sleep(.25)
 
 if __name__ == "__main__":
     main()
