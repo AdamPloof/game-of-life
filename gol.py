@@ -17,15 +17,14 @@ class GameOfLife:
         dimensions = self.cells.shape
         # Possible optimization here -- don't copy entire set of cells?
         next_generation = self.cells.copy()
-        for y_idx in range(dimensions[0] - 1):
-            for x_idx in range(dimensions[1] - 1):
-                next_generation[y_idx][x_idx] = self.lives((y_idx, x_idx))
+        for y in range(dimensions[0] - 1):
+            for x in range(dimensions[1] - 1):
+                next_generation[y][x] = self.lives((y, x))
 
         self.cells = next_generation
         self.live_cells = np.argwhere(self.cells)
 
     def get_neighbors(self, cell_idx: tuple):
-        # TODO: Don't wrap indexes
         neighbor_positions = [
             # Previous row
             (cell_idx[0] - 1, cell_idx[1] - 1),
@@ -47,14 +46,14 @@ class GameOfLife:
 
         return neighbors
 
-    def cell_is_valid(self, cell_pos: tuple):
-        if cell_pos[0] < 0 or cell_pos[1] < 0:
+    def cell_is_valid(self, cell_idx: tuple):
+        if cell_idx[0] < 0 or cell_idx[1] < 0:
             return False
         
-        if cell_pos[0] > self.x_bound:
+        if cell_idx[0] > self.x_bound:
             return False
         
-        if cell_pos[1] > self.y_bound:
+        if cell_idx[1] > self.y_bound:
             return False
         
         return True
