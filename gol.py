@@ -13,11 +13,14 @@ class GameOfLife:
             self.cells[y][x] = True
     
     def next_generation(self) -> None:
-        # TODO: probably don't need to enumerat -- just get the dimensions.
-        for y_idx, row in enumerate(self.cells):
-            for x_idx, cell in enumerate(row):
-                self.cells[y_idx][x_idx] = self.lives((y_idx, x_idx))
+        dimensions = self.cells.shape
+        # Possible optimization here -- don't copy entire set of cells?
+        next_generation = self.cells.copy()
+        for y_idx in range(dimensions[0] - 1):
+            for x_idx in range(dimensions[1] - 1):
+                next_generation[y_idx][x_idx] = self.lives((y_idx, x_idx))
 
+        self.cells = next_generation
         self.live_cells = np.argwhere(self.cells)
 
     def get_neighbors(self, cell_idx: tuple):
@@ -55,22 +58,30 @@ class GameOfLife:
         
         return True
 
-    def lives(self, cell: tuple) -> bool:
-        neighbors = self.get_neighbors(cell)
+    def lives(self, cell_idx: tuple) -> bool:
+        neighbors = self.get_neighbors(cell_idx)
         live_n_cnt = np.count_nonzero(neighbors)
 
-        return live_n_cnt > 1 & live_n_cnt < 4
+        if not self.cells[cell_idx[0], cell_idx[1]]:
+            return live_n_cnt == 3
+        
+        return live_n_cnt > 1 and live_n_cnt < 4
     
 
 def main():
+    # starting_cells = [
+    #     (1, 2),
+    #     (1, 3),
+    #     (2, 1),
+    #     (5, 4),
+    #     (6, 4),
+    #     (6, 5),
+    #     (7, 4),
+    # ]
     starting_cells = [
-        (1, 2),
-        (1, 3),
-        (2, 1),
-        (5, 4),
-        (6, 4),
-        (6, 5),
-        (7, 4),
+        (3, 3),
+        (3, 4),
+        (3, 5),
     ]
     dimensions = (9, 9)
     game = GameOfLife(dimensions, starting_cells)
@@ -78,11 +89,11 @@ def main():
     board.draw_board(game.live_cells)
     board.show_board()
 
-    # while True:
-    #     game.next_generation()
-    #     board.draw_board(game.live_cells)
-    #     board.show_board()
-    #     time.sleep(1)
+    while True:
+        game.next_generation()
+        board.draw_board(game.live_cells)
+        board.show_board()
+        time.sleep(1)
 
 if __name__ == "__main__":
     main()

@@ -85,8 +85,9 @@ class Board:
     def show_board(self):
         # TODO: using opencv to show the image for now. Lets put this on a tkinter canvas later
         cv_img = cv.cvtColor(np.array(self.board), cv.COLOR_RGB2BGR)
-        cv.imshow('Game of Life', cv_img)
+        window_name = cv.namedWindow('Game of Life')
+        cv.moveWindow(window_name, 40, 30)
+        cv.imshow(window_name, cv_img)
 
-        if cv.waitKey(0) == 27:
+        if cv.waitKey(1000) == 27:
             cv.destroyAllWindows()
-            sys.exit()
