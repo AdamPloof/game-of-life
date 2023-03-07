@@ -76,14 +76,14 @@ def main():
 
     dimensions = (100, 100)
     game = GameOfLife(dimensions, starting_cells)
-    board = Board(dimensions)
-    board.draw_board(game.live_cells)
-    board.show_board()
+    # board = Board(dimensions)
+    # board.draw_board(game.live_cells)
+    # board.show_board()
 
     while True:
         game.next_generation()
-        board.draw_board(game.live_cells)
-        board.show_board()
+        # board.draw_board(game.live_cells)
+        # board.show_board()
         time.sleep(.25)
 
 if __name__ == "__main__":
