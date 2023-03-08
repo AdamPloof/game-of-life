@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from tkinter import N, W, S, E
+from tkinter import N, W, S, E, SUNKEN
 
 from board import Board
 
@@ -28,7 +28,11 @@ class GameOfLifeUI:
         mainframe.columnconfigure(1, weight=1)
         mainframe.rowconfigure(1, weight=1)
 
-        self.board = Board(mainframe, dimensions)
+        board_frame = ttk.Frame(mainframe, borderwidth=2, relief=SUNKEN)
+        board_frame.grid(column=0, row=0, sticky=''.join((N, W, E)))
+        board_frame.columnconfigure(0, weight=1)
+        board_frame.rowconfigure(0, weight=1)
+        self.board = Board(board_frame, dimensions)
         self.board.grid(column=0, row=0, sticky=''.join((N, W, E)))
         # self.root.bind('<Configure>', lambda e: print((self.board.winfo_width(), self.board.winfo_height())))
 
@@ -51,14 +55,15 @@ class GameOfLifeUI:
         reset_btn = ttk.Button(controls_frame, textvariable=self.reset_btn_text)
         reset_btn.grid(column=3, row=0)
 
-    def draw_board_grid(self, e):
-        grid_ready = self.board.draw_grid()
+    def draw_board(self, e):
+        grid_ready = self.board.draw_board()
 
         if grid_ready:
+            self.board.init_cells()
             self.root.unbind('<Configure>')
 
     def run(self):
-        self.root.bind('<Configure>', self.draw_board_grid)
+        self.root.bind('<Configure>', self.draw_board)
         self.root.mainloop()
 
     
