@@ -4,7 +4,15 @@ import json
 from board import Board
 
 class GameOfLife:
-    def __init__(self, dimensions: tuple, live_cells: list[tuple]) -> None:
+    # def __init__(self, dimensions: tuple, live_cells: list[tuple]) -> None:
+    def __init__(self) -> None:
+        # TODO: Get board dimensions and starting cells from UI.
+        with open('./starting_positions/135-degree MWSS-to-G.json') as start_f:
+            start_pos = json.load(start_f)
+
+        live_cells = [(cell[0], cell[1]) for cell in start_pos]
+        dimensions = (100, 100)
+
         self.cells = np.zeros(dimensions, np.bool_)
         self.live_cells = live_cells
         self.x_bound = dimensions[0] - 1
@@ -75,7 +83,8 @@ def main():
     starting_cells = [(cell[0], cell[1]) for cell in start_pos]
 
     dimensions = (100, 100)
-    game = GameOfLife(dimensions, starting_cells)
+    game = GameOfLife()
+    # game = GameOfLife(dimensions, starting_cells)
     # board = Board(dimensions)
     # board.draw_board(game.live_cells)
     # board.show_board()

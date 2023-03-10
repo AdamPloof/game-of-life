@@ -10,11 +10,11 @@ class Board(Canvas):
     GRID_COLOR = '#757678'
     LIVE_CELL_COLOR = '#2b7dff'
     LIVE_TAG = 'alive'
-    DEAD_TAG = 'dead'
 
     def __init__(self, parent: ttk.Frame, cell_dim: tuple, **kwargs) -> None:
         self.cell_dim: tuple = cell_dim
         self.cells = []
+        self.live_cells = {}
 
         kwargs['height'] = self.BOARD_SIZE
         kwargs['width'] = self.BOARD_SIZE
@@ -96,11 +96,27 @@ class Board(Canvas):
 
     def add_cell(self, coords: tuple) -> int:
         # TODO: Remove the pink fill once we've got the living and dying thing going on.
-        cell = self.create_rectangle(*coords, width=0, fill='pink', tags=self.DEAD_TAG)
+        cell = self.create_rectangle(*coords, width=0, fill='pink')
         return cell
     
-    def cell_live(self, cell_idx: tuple):
-        pass
+    def set_live_cells(self, cells):
+        live_cells = {}
+        for cell in cells:
+            id = self.cell_live(cell)
+            live_cells[id] = cell
 
-    def cell_die(self, cell_idx: tuple):
-        pass
+        died = [id for id in self.live_cells.keys() if id not in live_cells.keys()]
+        for died_id in died:
+            self.cell_die(died_id)
+
+        self.live_cells = live_cells
+    
+    # return the id of the cell brought to life.
+    def cell_live(self, cell_idx: tuple) -> int:
+        cell_id = self.cells[cell_idx[0]][cell_idx[1]]
+        self.addtag(self.LIVE_TAG, 'withtage', cell_id)
+
+        return cell_id
+
+    def cell_die(self, cell_id: int):
+        self.dtag(cell_id, self.LIVE_TAG)
