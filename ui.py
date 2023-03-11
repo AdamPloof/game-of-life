@@ -15,6 +15,8 @@ class UserInterface:
         self.engine = engine
         self.root: tk.Tk = self.init_tk()
         self.build_ui(dimensions)
+        self.running: bool = True
+        self.refresh_rate = 400 # in ms
 
     def init_tk(self) -> tk.Tk:
         root = tk.Tk()
@@ -46,12 +48,12 @@ class UserInterface:
 
         self.activate_btn_text = tk.StringVar()
         self.activate_btn_text.set('Start')
-        activate_btn = ttk.Button(controls_frame, textvariable=self.activate_btn_text)
+        activate_btn = ttk.Button(controls_frame, textvariable=self.activate_btn_text, command=self.toggle_running)
         activate_btn.grid(column=1, row=0)
 
         self.reset_btn_text = tk.StringVar()
         self.reset_btn_text.set('Clear')
-        next_btn = ttk.Button(controls_frame, text='Next')
+        next_btn = ttk.Button(controls_frame, text='Next', command=self.next_action)
         next_btn.grid(column=2, row=0)
 
         reset_btn = ttk.Button(controls_frame, textvariable=self.reset_btn_text)
@@ -64,6 +66,31 @@ class UserInterface:
             self.board.init_cells()
             self.board.set_live_cells(self.engine.live_cells)
             self.root.unbind('<Configure>')
+
+    def next_action(self):
+        if self.running:
+            return
+        
+        self.update()
+
+    def toggle_running(self):
+        # TODO: also toggle button state of next and reset buttons
+        if self.running:
+            self.running = False
+            self.activate_btn_text.set('Start')
+        else:
+            self.running = True
+            self.activate_btn_text.set('Stop')
+            self.update()
+
+    def update(self):
+        # TODO: stop button takes one generation to actually stop. Should cache next gen if stopped
+        # and use that if it's available on restart.
+        next_gen = self.engine.get_next_gen()
+        self.board.set_live_cells(next_gen)
+
+        if self.running:
+            self.board.after(self.refresh_rate, self.update)
 
     def run(self):
         self.root.bind('<Configure>', self.draw_board)

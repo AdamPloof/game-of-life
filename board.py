@@ -9,6 +9,7 @@ class Board(Canvas):
     BG_COLOR = '#edf2fa'
     GRID_COLOR = '#757678'
     LIVE_CELL_COLOR = '#2b7dff'
+    DEAD_CELL_COLOR = 'pink'
     LIVE_TAG = 'alive'
 
     def __init__(self, parent: ttk.Frame, cell_dim: tuple, **kwargs) -> None:
@@ -99,8 +100,7 @@ class Board(Canvas):
         self.cells = self.cells.T
 
     def add_cell(self, coords: tuple) -> int:
-        # TODO: Remove the pink fill once we've got the living and dying thing going on.
-        cell = self.create_rectangle(*coords, width=0, fill='pink')
+        cell = self.create_rectangle(*coords, width=0, fill=self.DEAD_CELL_COLOR)
         return cell
     
     def set_live_cells(self, cells: np.ndarray):
@@ -126,4 +126,5 @@ class Board(Canvas):
 
     def cell_die(self, cell_id: int):
         self.dtag(cell_id, self.LIVE_TAG)
-        self.itemconfigure(cell_id, fill='')
+        # Note, you can make a cool "Live Cells were here" path by using a different color here.
+        self.itemconfigure(cell_id, fill=self.DEAD_CELL_COLOR)
