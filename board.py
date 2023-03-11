@@ -14,7 +14,6 @@ class Board(Canvas):
     def __init__(self, parent: ttk.Frame, cell_dim: tuple, **kwargs) -> None:
         self.cell_dim: tuple = cell_dim
         self.cells = []
-        self.live_cells = {}
 
         kwargs['height'] = self.BOARD_SIZE
         kwargs['width'] = self.BOARD_SIZE
@@ -80,7 +79,8 @@ class Board(Canvas):
         cell_width = round(computed_w / self.cell_dim[0])
         cell_height = round(computed_h / self.cell_dim[1])
 
-        for x in range(self.cell_dim[0]):
+        # Reversing the order that we add cells otherwise the cell indices are mirrored to the games cells.
+        for x in range(self.cell_dim[0] - 1, 0, -1):
             # Subtract 1 pixel from each dimension for the grid lines
             cell_x1 = (x * cell_width) + 1
             cell_x2 = ((x * cell_width) + cell_width) - 1
@@ -99,24 +99,27 @@ class Board(Canvas):
         cell = self.create_rectangle(*coords, width=0, fill='pink')
         return cell
     
-    def set_live_cells(self, cells):
-        live_cells = {}
+    def set_live_cells(self, cells: np.ndarray):
+        last_gen: tuple = self.find_withtag(self.LIVE_TAG)
+        live_cells: dict = {}
         for cell in cells:
             id = self.cell_live(cell)
             live_cells[id] = cell
 
-        died = [id for id in self.live_cells.keys() if id not in live_cells.keys()]
+        died = [id for id in last_gen if id not in live_cells.keys()]
         for died_id in died:
             self.cell_die(died_id)
 
-        self.live_cells = live_cells
-    
+        self.itemconfigure(self.LIVE_TAG, fill=self.LIVE_CELL_COLOR)
+
     # return the id of the cell brought to life.
     def cell_live(self, cell_idx: tuple) -> int:
         cell_id = self.cells[cell_idx[0]][cell_idx[1]]
-        self.addtag(self.LIVE_TAG, 'withtage', cell_id)
+        if self.LIVE_TAG not in self.gettags(cell_id):
+            self.addtag(self.LIVE_TAG, 'withtag', cell_id)
 
         return cell_id
 
     def cell_die(self, cell_id: int):
         self.dtag(cell_id, self.LIVE_TAG)
+        self.itemconfigure(cell_id, fill='')

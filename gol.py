@@ -1,18 +1,10 @@
 import numpy as np
 import time
 import json
-from board import Board
+from ui import UserInterface
 
 class GameOfLife:
-    # def __init__(self, dimensions: tuple, live_cells: list[tuple]) -> None:
-    def __init__(self) -> None:
-        # TODO: Get board dimensions and starting cells from UI.
-        with open('./starting_positions/135-degree MWSS-to-G.json') as start_f:
-            start_pos = json.load(start_f)
-
-        live_cells = [(cell[0], cell[1]) for cell in start_pos]
-        dimensions = (100, 100)
-
+    def __init__(self, dimensions: tuple, live_cells: np.ndarray) -> None:
         self.cells = np.zeros(dimensions, np.bool_)
         self.live_cells = live_cells
         self.x_bound = dimensions[0] - 1
@@ -20,6 +12,10 @@ class GameOfLife:
 
         for y, x in live_cells:
             self.cells[y][x] = True
+
+    def get_next_gen(self) -> np.ndarray:
+        self.next_generation()
+        return self.live_cells
     
     def next_generation(self) -> None:
         dimensions = self.cells.shape
@@ -80,20 +76,16 @@ def main():
     with open('./starting_positions/135-degree MWSS-to-G.json') as start_f:
         start_pos = json.load(start_f)
 
-    starting_cells = [(cell[0], cell[1]) for cell in start_pos]
-
+    # TODO: Should probably handle out of bounds errors if any starting cells are outside the board dimensions
+    starting_cells = np.asarray([(cell[0], cell[1]) for cell in start_pos])
     dimensions = (100, 100)
-    game = GameOfLife()
-    # game = GameOfLife(dimensions, starting_cells)
-    # board = Board(dimensions)
-    # board.draw_board(game.live_cells)
-    # board.show_board()
+    game = GameOfLife(dimensions, starting_cells)
+    ui = UserInterface(game, dimensions)
+    ui.run()
 
-    while True:
-        game.next_generation()
-        # board.draw_board(game.live_cells)
-        # board.show_board()
-        time.sleep(.25)
+    # while True:
+    #     game.next_generation()
+    #     time.sleep(.25)
 
 if __name__ == "__main__":
     main()

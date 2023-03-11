@@ -1,15 +1,18 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import N, W, S, E, SUNKEN
+import numpy as np
+import json
 
 from board import Board
 
-class GameOfLifeUI:
+class UserInterface:
     BG_COLOR = '#edf2fa'
     GRID_COLOR = '#757678'
     LIVE_CELL_COLOR = '#2b7dff'
 
-    def __init__(self, dimensions: tuple) -> None:
+    def __init__(self, engine, dimensions: tuple) -> None:
+        self.engine = engine
         self.root: tk.Tk = self.init_tk()
         self.build_ui(dimensions)
 
@@ -34,7 +37,6 @@ class GameOfLifeUI:
         board_frame.rowconfigure(0, weight=1)
         self.board = Board(board_frame, dimensions)
         self.board.grid(column=0, row=0, sticky=''.join((N, W, E)))
-        # self.root.bind('<Configure>', lambda e: print((self.board.winfo_width(), self.board.winfo_height())))
 
         controls_frame = ttk.Frame(mainframe, padding=(25, 20))
         controls_frame.grid(column=0, row=1, sticky=''.join((S, W, E)))
@@ -60,6 +62,7 @@ class GameOfLifeUI:
 
         if grid_ready:
             self.board.init_cells()
+            self.board.set_live_cells(self.engine.live_cells)
             self.root.unbind('<Configure>')
 
     def run(self):
@@ -68,8 +71,17 @@ class GameOfLifeUI:
 
     
 def main():
+    from gol import GameOfLife
+
+    with open('./starting_positions/135-degree MWSS-to-G.json') as start_f:
+        start_pos = json.load(start_f)
+
+    starting_cells = np.asarray([(cell[0], cell[1]) for cell in start_pos])
     dimensions = (100, 100)
-    ui = GameOfLifeUI(dimensions)
+    game = GameOfLife(dimensions, starting_cells)
+
+    dimensions = (100, 100)
+    ui = UserInterface(game, dimensions)
     ui.run()
 
 if __name__ == "__main__":
