@@ -48,16 +48,16 @@ class UserInterface:
 
         self.activate_btn_text = tk.StringVar()
         self.activate_btn_text.set('Start')
-        activate_btn = ttk.Button(controls_frame, textvariable=self.activate_btn_text, command=self.toggle_running)
-        activate_btn.grid(column=1, row=0)
+        self.activate_btn = ttk.Button(controls_frame, textvariable=self.activate_btn_text, command=self.toggle_running)
+        self.activate_btn.grid(column=1, row=0)
+
+        self.next_btn = ttk.Button(controls_frame, text='Next', command=self.next_action)
+        self.next_btn.grid(column=2, row=0)
 
         self.reset_btn_text = tk.StringVar()
         self.reset_btn_text.set('Clear')
-        next_btn = ttk.Button(controls_frame, text='Next', command=self.next_action)
-        next_btn.grid(column=2, row=0)
-
-        reset_btn = ttk.Button(controls_frame, textvariable=self.reset_btn_text)
-        reset_btn.grid(column=3, row=0)
+        self.reset_btn = ttk.Button(controls_frame, textvariable=self.reset_btn_text)
+        self.reset_btn.grid(column=3, row=0)
 
     def draw_board(self, e):
         grid_ready = self.board.draw_board()
@@ -71,21 +71,25 @@ class UserInterface:
         if self.running:
             return
         
-        self.update()
+        self.update(True)
 
     def toggle_running(self):
-        # TODO: also toggle button state of next and reset buttons
         if self.running:
             self.running = False
             self.activate_btn_text.set('Start')
+            self.next_btn.state(['!disabled'])
+            self.reset_btn.state(['!disabled'])
         else:
             self.running = True
             self.activate_btn_text.set('Stop')
+            self.next_btn.state(['disabled'])
+            self.reset_btn.state(['disabled'])
             self.update()
 
-    def update(self):
-        # TODO: stop button takes one generation to actually stop. Should cache next gen if stopped
-        # and use that if it's available on restart.
+    def update(self, force_update=False):
+        if not self.running and not force_update:
+            return
+
         next_gen = self.engine.get_next_gen()
         self.board.set_live_cells(next_gen)
 
