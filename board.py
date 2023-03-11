@@ -12,8 +12,7 @@ class Board(Canvas):
     LIVE_TAG = 'alive'
 
     def __init__(self, parent: ttk.Frame, cell_dim: tuple, **kwargs) -> None:
-        self.cell_dim: tuple = cell_dim
-        self.cells = []
+        self.cells: np.ndarray = np.zeros(cell_dim, dtype=int)
 
         kwargs['height'] = self.BOARD_SIZE
         kwargs['width'] = self.BOARD_SIZE
@@ -34,11 +33,12 @@ class Board(Canvas):
         if computed_w == 1 or computed_h == 1:
             return False
         
-        cell_width = round(computed_w / self.cell_dim[0])
-        cell_height = round(computed_h / self.cell_dim[1])
+        cell_dim = self.cells.shape
+        cell_width = round(computed_w / cell_dim[0])
+        cell_height = round(computed_h / cell_dim[1])
 
         x = 0
-        while x < self.cell_dim[0]:
+        while x < cell_dim[0]:
             if x == 0:
                 x += 1
                 continue
@@ -52,7 +52,7 @@ class Board(Canvas):
             x += 1
 
         y = 0
-        while y < self.cell_dim[0]:
+        while y < cell_dim[0]:
             if y == 0:
                 y += 1
                 continue
@@ -76,23 +76,27 @@ class Board(Canvas):
     def init_cells(self) -> None:
         computed_w = self.winfo_width()
         computed_h = self.winfo_height()
-        cell_width = round(computed_w / self.cell_dim[0])
-        cell_height = round(computed_h / self.cell_dim[1])
+        cell_dim = self.cells.shape
+        cell_width = round(computed_w / cell_dim[0])
+        cell_height = round(computed_h / cell_dim[1])
 
-        # Reversing the order that we add cells otherwise the cell indices are mirrored to the games cells.
-        for x in range(self.cell_dim[0] - 1, 0, -1):
-            # Subtract 1 pixel from each dimension for the grid lines
+        x = 0
+        for x, row in enumerate(self.cells):
             cell_x1 = (x * cell_width) + 1
             cell_x2 = ((x * cell_width) + cell_width) - 1
 
-            cell_row = []
-            for y in range(self.cell_dim[1]):
+            y = 0
+            for y, cell in enumerate(row):
                 cell_y1 = (y * cell_height) + 1
                 cell_y2 = ((y * cell_height) + cell_height) - 1
-                cell = self.add_cell((cell_x1, cell_y1, cell_x2, cell_y2))
-                cell_row.append(cell)
-            
-            self.cells.append(cell_row)
+                self.cells[x, y] = self.add_cell((cell_x1, cell_y1, cell_x2, cell_y2))                
+                y += 1
+
+            x += 1
+        
+        # Don't ask my why, but the order that cells are inserted here mirrors the starting position order.
+        # So just transpose the cells and call it a day.
+        self.cells = self.cells.T
 
     def add_cell(self, coords: tuple) -> int:
         # TODO: Remove the pink fill once we've got the living and dying thing going on.
@@ -113,8 +117,8 @@ class Board(Canvas):
         self.itemconfigure(self.LIVE_TAG, fill=self.LIVE_CELL_COLOR)
 
     # return the id of the cell brought to life.
-    def cell_live(self, cell_idx: tuple) -> int:
-        cell_id = self.cells[cell_idx[0]][cell_idx[1]]
+    def cell_live(self, cell_idx: tuple[int, int]) -> int:
+        cell_id = self.cells[cell_idx[0], cell_idx[1]]
         if self.LIVE_TAG not in self.gettags(cell_id):
             self.addtag(self.LIVE_TAG, 'withtag', cell_id)
 
