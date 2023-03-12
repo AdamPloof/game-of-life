@@ -4,16 +4,22 @@ from tkinter import ttk
 from tkinter import N, W, S, E
 import numpy as np
 
+from typing import Callable
+
 class Board(Canvas):
     BOARD_SIZE = 700
     BG_COLOR = '#edf2fa'
     GRID_COLOR = '#757678'
     LIVE_CELL_COLOR = '#2b7dff'
-    DEAD_CELL_COLOR = 'pink'
+    DEAD_CELL_COLOR = '#f6ccda'
+    ACTIVE_CELL_COLOR = '#de4e7c'
+    CELL_TAG = 'cell'
     LIVE_TAG = 'alive'
 
-    def __init__(self, parent: ttk.Frame, cell_dim: tuple, **kwargs) -> None:
+    def __init__(self, parent: ttk.Frame, cell_dim: tuple, props: dict, **kwargs) -> None:
         self.cells: np.ndarray = np.zeros(cell_dim, dtype=int)
+        self.add_live_cell: Callable = props['add_live_cell']
+        self.is_running: Callable = props['is_running']
 
         kwargs['height'] = self.BOARD_SIZE
         kwargs['width'] = self.BOARD_SIZE
@@ -100,8 +106,24 @@ class Board(Canvas):
         self.cells = self.cells.T
 
     def add_cell(self, coords: tuple) -> int:
-        cell = self.create_rectangle(*coords, width=0, fill=self.DEAD_CELL_COLOR)
+        cell = self.create_rectangle(
+            *coords,
+            width=0,
+            fill=self.DEAD_CELL_COLOR,
+            activefill=self.ACTIVE_CELL_COLOR,
+            tags=self.CELL_TAG
+        )
+        self.tag_bind(cell, "<Button-1>", self.handle_add_live_cell)
+
         return cell
+    
+    def handle_add_live_cell(self, e: tk.Event):
+        if self.is_running() == True:
+            return
+
+        cell_id = e.widget.find_withtag('current')[0]
+        cell_idx = np.argwhere(self.cells == cell_id)
+        self.add_live_cell(cell_idx[0])
     
     def set_live_cells(self, cells: np.ndarray):
         last_gen: tuple = self.find_withtag(self.LIVE_TAG)
@@ -128,3 +150,9 @@ class Board(Canvas):
         self.dtag(cell_id, self.LIVE_TAG)
         # Note, you can make a cool "Live Cells were here" path by using a different color here.
         self.itemconfigure(cell_id, fill=self.DEAD_CELL_COLOR)
+
+    def show_active_cell(self, show: bool) -> None:
+        if show:
+            self.itemconfigure(self.CELL_TAG, activefill=self.ACTIVE_CELL_COLOR)
+        else:
+            self.itemconfigure(self.CELL_TAG, activefill='')

@@ -37,7 +37,12 @@ class UserInterface:
         board_frame.grid(column=0, row=0, sticky=''.join((N, W, E)))
         board_frame.columnconfigure(0, weight=1)
         board_frame.rowconfigure(0, weight=1)
-        self.board = Board(board_frame, dimensions)
+
+        board_props = {
+            'is_running': self.is_running,
+            'add_live_cell': self.add_live_cell
+        }
+        self.board = Board(board_frame, dimensions, board_props)
         self.board.grid(column=0, row=0, sticky=''.join((N, W, E)))
 
         controls_frame = ttk.Frame(mainframe, padding=(25, 20))
@@ -91,15 +96,24 @@ class UserInterface:
 
         if self.running:
             self.running = False
+            self.board.show_active_cell(True)
             self.activate_btn_text.set('Start')
             self.next_btn.state(['!disabled'])
             self.reset_btn.state(['!disabled'])
         else:
             self.running = True
+            self.board.show_active_cell(False)
             self.activate_btn_text.set('Stop')
             self.next_btn.state(['disabled'])
             self.reset_btn.state(['disabled'])
             self.update()
+
+    def add_live_cell(self, cell_idx: tuple):
+        self.engine.add_live_cell(cell_idx)
+        self.board.set_live_cells(self.engine.live_cells)
+
+    def is_running(self):
+        return self.running
 
     def update(self, force_update=False):
         if not self.running and not force_update:

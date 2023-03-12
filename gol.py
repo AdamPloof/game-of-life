@@ -3,7 +3,6 @@ import time
 import json
 from ui import UserInterface
 
-# TODO: hang on to starting postion for resets, provide a clear method.
 class GameOfLife:
     def __init__(self, dimensions: tuple, live_cells: np.ndarray) -> None:
         self.cells = np.zeros(dimensions, np.bool_)
@@ -15,6 +14,12 @@ class GameOfLife:
 
         for y, x in live_cells:
             self.cells[y][x] = True
+
+    # TODO: when live cells are added manually, update the starting postition if the game hasn't been run yet.
+    def add_live_cell(self, idx: tuple):
+        self.cells[*idx] = True
+        live_cell = np.array([idx])
+        self.live_cells = np.concatenate((self.live_cells, live_cell), axis=0)
 
     def reset(self) -> np.ndarray:
         self.live_cells = self.first_gen.copy()
@@ -96,7 +101,8 @@ class GameOfLife:
     
 
 def main():
-    with open('./starting_positions/135-degree MWSS-to-G.json') as start_f:
+    # with open('./starting_positions/135-degree MWSS-to-G.json') as start_f:
+    with open('./starting_positions/simple_oscillator.json') as start_f:
         start_pos = json.load(start_f)
 
     # TODO: Should probably handle out of bounds errors if any starting cells are outside the board dimensions
