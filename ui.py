@@ -15,7 +15,7 @@ class UserInterface:
         self.engine = engine
         self.root: tk.Tk = self.init_tk()
         self.build_ui(dimensions)
-        self.running: bool = True
+        self.running: bool = False
         self.refresh_rate = 400 # in ms
 
     def init_tk(self) -> tk.Tk:
@@ -56,7 +56,7 @@ class UserInterface:
 
         self.reset_btn_text = tk.StringVar()
         self.reset_btn_text.set('Clear')
-        self.reset_btn = ttk.Button(controls_frame, textvariable=self.reset_btn_text)
+        self.reset_btn = ttk.Button(controls_frame, textvariable=self.reset_btn_text, command=self.reset_or_clear)
         self.reset_btn.grid(column=3, row=0)
 
     def draw_board(self, e):
@@ -67,13 +67,28 @@ class UserInterface:
             self.board.set_live_cells(self.engine.live_cells)
             self.root.unbind('<Configure>')
 
+    def reset_or_clear(self):
+        if self.running:
+            return
+        
+        if self.engine.is_first_gen:
+            self.engine.clear()
+        else:
+            self.engine.reset()
+            self.reset_btn_text.set('Clear')
+
+        self.board.set_live_cells(self.engine.live_cells)
+        
     def next_action(self):
         if self.running:
             return
         
+        self.reset_btn_text.set('Reset')
         self.update(True)
 
     def toggle_running(self):
+        self.reset_btn_text.set('Reset')
+
         if self.running:
             self.running = False
             self.activate_btn_text.set('Start')
