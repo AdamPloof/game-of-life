@@ -76,8 +76,9 @@ class UserInterface:
         if self.running:
             return
         
-        if self.engine.is_first_gen:
+        if self.engine.is_first_gen and not self.engine.is_extinct():
             self.engine.clear()
+            self.reset_btn_text.set('Reset')
         else:
             self.engine.reset()
             self.reset_btn_text.set('Clear')

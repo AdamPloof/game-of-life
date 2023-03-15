@@ -15,11 +15,13 @@ class GameOfLife:
         for y, x in live_cells:
             self.cells[y][x] = True
 
-    # TODO: when live cells are added manually, update the starting postition if the game hasn't been run yet.
     def add_live_cell(self, idx: tuple):
         self.cells[*idx] = True
         live_cell = np.array([idx])
         self.live_cells = np.concatenate((self.live_cells, live_cell), axis=0)
+
+        if self.is_first_gen or self.is_extinct():
+            self.first_gen = self.live_cells.copy()
 
     def reset(self) -> np.ndarray:
         self.live_cells = self.first_gen.copy()
@@ -99,6 +101,8 @@ class GameOfLife:
         
         return live_n_cnt > 1 and live_n_cnt < 4
     
+    def is_extinct(self) -> bool:
+        return self.live_cells.size == 0
 
 def main():
     # with open('./starting_positions/135-degree MWSS-to-G.json') as start_f:
