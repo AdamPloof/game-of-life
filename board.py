@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import Canvas
 from tkinter import ttk
-from tkinter import N, W, S, E
+from tkinter import N, W, S, E, ALL
 import numpy as np
 
 from typing import Callable
@@ -20,82 +20,33 @@ class Board(Canvas):
         self.cells: np.ndarray = np.zeros(cell_dim, dtype=int)
         self.add_live_cell: Callable = props['add_live_cell']
         self.is_running: Callable = props['is_running']
+        self.cell_size = 10 # in pixels
+        self.cell_dim = cell_dim
+
+        w, h = self.get_board_dimensions()
 
         kwargs['height'] = self.BOARD_SIZE
         kwargs['width'] = self.BOARD_SIZE
         kwargs['background'] = self.BG_COLOR
         kwargs['borderwidth'] = 0
         kwargs['highlightthickness'] = 0
+        kwargs['scrollregion'] = (0, 0, w, h)
 
         super().__init__(parent, **kwargs)
-        self.grid(column=0, row=0, sticky=''.join((N, W, E)))
 
-    # Return True on successfully drawing the grid, False otherwise.
-    # The reason this may return false is because the canvas hasn't been rendered yet and
-    # doesn't have an actual size which we need to calculate where to put the grid lines.
-    def draw_board(self) -> bool:
-        computed_w = self.winfo_width()
-        computed_h = self.winfo_height()
-
-        if computed_w == 1 or computed_h == 1:
-            return False
-        
-        cell_dim = self.cells.shape
-        cell_width = round(computed_w / cell_dim[0])
-        cell_height = round(computed_h / cell_dim[1])
-
-        x = 0
-        while x < cell_dim[0]:
-            if x == 0:
-                x += 1
-                continue
-
-            x_coord = (cell_width * x)
-            self.create_line(
-                [(x_coord, 0), (x_coord, computed_w)],
-                fill=self.GRID_COLOR,
-                width=1
-            )
-            x += 1
-
-        y = 0
-        while y < cell_dim[0]:
-            if y == 0:
-                y += 1
-                continue
-
-            y_coord = (cell_height * y)
-            self.create_line(
-                [(0, y_coord), (computed_w, y_coord)],
-                fill=self.GRID_COLOR,
-                width=1
-            )
-            y += 1
-
-        # Drawing outer border lines
-        self.create_line([(0, 0), (computed_w, 0)]) # Top
-        self.create_line([(0, computed_h), (computed_w, computed_h)]) # Bottom
-        self.create_line([(0, 0), (0, computed_h)]) # Left
-        self.create_line([(computed_w, 0), (computed_w, computed_h)]) # Right
-
-        return True
+    def ready(self):
+        return self.winfo_width() != 1
     
     def init_cells(self) -> None:
-        computed_w = self.winfo_width()
-        computed_h = self.winfo_height()
-        cell_dim = self.cells.shape
-        cell_width = round(computed_w / cell_dim[0])
-        cell_height = round(computed_h / cell_dim[1])
-
         x = 0
         for x, row in enumerate(self.cells):
-            cell_x1 = (x * cell_width) + 1
-            cell_x2 = ((x * cell_width) + cell_width) - 1
+            cell_x1 = (x * self.cell_size)
+            cell_x2 = ((x * self.cell_size) + self.cell_size)
 
             y = 0
             for y, cell in enumerate(row):
-                cell_y1 = (y * cell_height) + 1
-                cell_y2 = ((y * cell_height) + cell_height) - 1
+                cell_y1 = (y * self.cell_size)
+                cell_y2 = ((y * self.cell_size) + self.cell_size)
                 self.cells[x, y] = self.add_cell((cell_x1, cell_y1, cell_x2, cell_y2))                
                 y += 1
 
@@ -105,13 +56,15 @@ class Board(Canvas):
         # So just transpose the cells and call it a day.
         self.cells = self.cells.T
 
+    # TODO: clicking on a live cell should kill it.
     def add_cell(self, coords: tuple) -> int:
         cell = self.create_rectangle(
             *coords,
-            width=0,
+            width=1,
             fill=self.DEAD_CELL_COLOR,
             activefill=self.ACTIVE_CELL_COLOR,
-            tags=self.CELL_TAG
+            tags=self.CELL_TAG,
+            outline='black'
         )
         self.tag_bind(cell, "<Button-1>", self.handle_add_live_cell)
 
@@ -156,3 +109,19 @@ class Board(Canvas):
             self.itemconfigure(self.CELL_TAG, activefill=self.ACTIVE_CELL_COLOR)
         else:
             self.itemconfigure(self.CELL_TAG, activefill='')
+
+    def get_board_dimensions(self) -> tuple:
+        board_width = self.cell_size * self.cell_dim[1]
+        board_height = self.cell_size * self.cell_dim[0]
+
+        return (board_width, board_height)
+
+    def zoom(self, factor):
+        self.scale(ALL, 0, 0, factor, factor)
+        # Recalculate scroll region of board based on scaled size of cells
+        cell_bbox = self.bbox(self.cells[0, 0])
+
+        # Subtract 1 pixel from bound box since the box *contains* the element
+        self.cell_size = cell_bbox[2] - 1
+        w, h = self.get_board_dimensions()
+        self.configure(scrollregion=(0, 0 , w, h))

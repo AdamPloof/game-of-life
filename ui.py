@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from tkinter import N, W, S, E, SUNKEN
+from tkinter import N, W, S, E, SUNKEN, HORIZONTAL, VERTICAL
 import numpy as np
 import json
 
@@ -14,13 +14,17 @@ class UserInterface:
     def __init__(self, engine, dimensions: tuple) -> None:
         self.engine = engine
         self.root: tk.Tk = self.init_tk()
-        self.build_ui(dimensions)
         self.running: bool = False
         self.refresh_rate = 400 # in ms
+        self.zoom = tk.DoubleVar()
+        self.zoom.set(1.0)
+        self.last_zoom = 1.0
+
+        self.build_ui(dimensions)
 
     def init_tk(self) -> tk.Tk:
         root = tk.Tk()
-        root.resizable(width=False, height=False)
+        # root.resizable(width=False, height=False)
         root.title('Game of Life')
         root.columnconfigure(0, weight=1)
         root.rowconfigure(0, weight=1)
@@ -30,11 +34,11 @@ class UserInterface:
     def build_ui(self, dimensions: tuple):
         mainframe = ttk.Frame(self.root, padding='12 12 12 24')
         mainframe.grid(column=0, row=0, sticky=''.join((N, W, E, S)))
-        mainframe.columnconfigure(1, weight=1)
-        mainframe.rowconfigure(1, weight=1)
+        mainframe.columnconfigure(0, weight=1)
+        mainframe.rowconfigure(0, weight=1)
 
         board_frame = ttk.Frame(mainframe, borderwidth=2, relief=SUNKEN)
-        board_frame.grid(column=0, row=0, sticky=''.join((N, W, E)))
+        board_frame.grid(column=0, row=0, sticky=''.join((N, W, E, S)))
         board_frame.columnconfigure(0, weight=1)
         board_frame.rowconfigure(0, weight=1)
 
@@ -43,10 +47,12 @@ class UserInterface:
             'add_live_cell': self.add_live_cell
         }
         self.board = Board(board_frame, dimensions, board_props)
-        self.board.grid(column=0, row=0, sticky=''.join((N, W, E)))
+        self.board.grid(column=0, row=0, sticky=''.join((N, W, E, S)))
+
+        self.attach_scrollbars(mainframe)
 
         controls_frame = ttk.Frame(mainframe, padding=(25, 20))
-        controls_frame.grid(column=0, row=1, sticky=''.join((S, W, E)))
+        controls_frame.grid(column=0, row=2, sticky=''.join((S, W, E)))
         for i in range(5):
             controls_frame.columnconfigure(i, weight=1)
             controls_frame.rowconfigure(i, weight=1)
@@ -64,13 +70,43 @@ class UserInterface:
         self.reset_btn = ttk.Button(controls_frame, textvariable=self.reset_btn_text, command=self.reset_or_clear)
         self.reset_btn.grid(column=3, row=0)
 
-    def draw_board(self, e):
-        grid_ready = self.board.draw_board()
+        self.attach_zoom(controls_frame)
 
-        if grid_ready:
+    def draw_board(self, e):
+        # grid_ready = self.board.draw_board()
+        if self.board.ready():
             self.board.init_cells()
             self.board.set_live_cells(self.engine.live_cells)
             self.root.unbind('<Configure>')
+
+    def attach_scrollbars(self, parent):
+        self.scrollx = ttk.Scrollbar(parent, orient=HORIZONTAL, command=self.board.xview)
+        self.scrollx.grid(column=0, row=1, sticky=''.join((W, E)))
+        self.board['xscrollcommand'] = self.scrollx.set
+
+        self.scrolly = ttk.Scrollbar(parent, orient=VERTICAL, command=self.board.yview)
+        self.scrolly.grid(column=1, row=0, sticky=''.join((N, S)))
+        self.board['yscrollcommand'] = self.scrolly.set
+
+    def attach_zoom(self, parent):
+        self.zoom_ctrl = ttk.Scale(
+            parent,
+            orient=HORIZONTAL,
+            length=200,
+            from_=-4.0,
+            to=20.0,
+            variable=self.zoom,
+            command=self.zoom_board
+        )
+        self.zoom_ctrl.grid(column=1, row=1, columnspan=3, sticky=''.join((W, E)), padx=25, pady=25)
+
+    def zoom_board(self, e):
+        zoom = self.zoom.get()
+        print(zoom)
+        delta = zoom - self.last_zoom
+        f = 1.1 ** delta
+        self.board.zoom(f)
+        self.last_zoom = zoom
 
     def reset_or_clear(self):
         if self.running:

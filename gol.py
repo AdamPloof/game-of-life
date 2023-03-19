@@ -111,7 +111,7 @@ def main():
 
     # TODO: Should probably handle out of bounds errors if any starting cells are outside the board dimensions
     starting_cells = np.asarray([(cell[0], cell[1]) for cell in start_pos])
-    dimensions = (100, 100)
+    dimensions = (120, 120)
     game = GameOfLife(dimensions, starting_cells)
     ui = UserInterface(game, dimensions)
     ui.run()
