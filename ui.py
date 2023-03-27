@@ -44,7 +44,8 @@ class UserInterface:
 
         board_props = {
             'is_running': self.is_running,
-            'add_live_cell': self.add_live_cell
+            'add_live_cell': self.add_live_cell,
+            'remove_live_cell': self.remove_live_cell
         }
         self.board = Board(board_frame, dimensions, board_props)
         self.board.grid(column=0, row=0, sticky=''.join((N, W, E, S)))
@@ -73,7 +74,6 @@ class UserInterface:
         self.attach_zoom(controls_frame)
 
     def draw_board(self, e):
-        # grid_ready = self.board.draw_board()
         if self.board.ready():
             self.board.init_cells()
             self.board.set_live_cells(self.engine.live_cells)
@@ -102,7 +102,6 @@ class UserInterface:
 
     def zoom_board(self, e):
         zoom = self.zoom.get()
-        print(zoom)
         delta = zoom - self.last_zoom
         f = 1.1 ** delta
         self.board.zoom(f)
@@ -147,6 +146,10 @@ class UserInterface:
 
     def add_live_cell(self, cell_idx: tuple):
         self.engine.add_live_cell(cell_idx)
+        self.board.set_live_cells(self.engine.live_cells)
+
+    def remove_live_cell(self, cell_idx: tuple):
+        self.engine.remove_live_cell(cell_idx)
         self.board.set_live_cells(self.engine.live_cells)
 
     def is_running(self):

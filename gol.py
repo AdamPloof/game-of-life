@@ -15,10 +15,22 @@ class GameOfLife:
         for y, x in live_cells:
             self.cells[y][x] = True
 
-    def add_live_cell(self, idx: tuple):
+    def add_live_cell(self, idx: tuple) -> None:
         self.cells[*idx] = True
         live_cell = np.array([idx])
         self.live_cells = np.concatenate((self.live_cells, live_cell), axis=0)
+
+        if self.is_first_gen or self.is_extinct():
+            self.first_gen = self.live_cells.copy()
+        
+    def remove_live_cell(self, idx: np.ndarray) -> None:
+        self.cells[*idx] = False
+
+        # TODO: It's a bit annoying to have to convert the ndarrays to lists
+        # in order to remove the dead cell. Figure out a more numpy-y way to do this.
+        lc_list: list = self.live_cells.tolist()
+        lc_list.remove(idx.tolist())
+        self.live_cells = np.array(lc_list)
 
         if self.is_first_gen or self.is_extinct():
             self.first_gen = self.live_cells.copy()

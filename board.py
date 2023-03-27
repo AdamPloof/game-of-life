@@ -19,6 +19,7 @@ class Board(Canvas):
     def __init__(self, parent: ttk.Frame, cell_dim: tuple, props: dict, **kwargs) -> None:
         self.cells: np.ndarray = np.zeros(cell_dim, dtype=int)
         self.add_live_cell: Callable = props['add_live_cell']
+        self.remove_live_cell: Callable = props['remove_live_cell']
         self.is_running: Callable = props['is_running']
         self.cell_size = 10 # in pixels
         self.cell_dim = cell_dim
@@ -66,18 +67,24 @@ class Board(Canvas):
             tags=self.CELL_TAG,
             outline='black'
         )
-        self.tag_bind(cell, "<Button-1>", self.handle_add_live_cell)
+        self.tag_bind(cell, "<Button-1>", self.toggle_cell)
 
         return cell
     
-    def handle_add_live_cell(self, e: tk.Event):
+    def toggle_cell(self, e: tk.Event) -> None:
         if self.is_running() == True:
             return
 
         cell_id = e.widget.find_withtag('current')[0]
         cell_idx = np.argwhere(self.cells == cell_id)
-        self.add_live_cell(cell_idx[0])
-    
+
+        if self.LIVE_TAG not in self.gettags(cell_id):
+            # Cell is dead, bring to life
+            self.add_live_cell(cell_idx[0])
+        else:
+            # Cell is alive, now it dies.
+            self.remove_live_cell(cell_idx[0])
+        
     def set_live_cells(self, cells: np.ndarray):
         last_gen: tuple = self.find_withtag(self.LIVE_TAG)
         live_cells: dict = {}
@@ -93,7 +100,7 @@ class Board(Canvas):
 
     # return the id of the cell brought to life.
     def cell_live(self, cell_idx: tuple[int, int]) -> int:
-        cell_id = self.cells[cell_idx[0], cell_idx[1]]
+        cell_id: int = self.cells[cell_idx[0], cell_idx[1]]
         if self.LIVE_TAG not in self.gettags(cell_id):
             self.addtag(self.LIVE_TAG, 'withtag', cell_id)
 
