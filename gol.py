@@ -24,19 +24,11 @@ class GameOfLife:
         if self.is_first_gen or self.is_extinct():
             self.first_gen = self.live_cells.copy()
 
-    # TODO: Bugfix, if all cells are removed manually, adding a new one results in an error:
-    # ValueError: all the input arrays must have same number of dimensions, but the array 
-    # at index 0 has 1 dimension(s) and the array at index 1 has 2 dimension(s)
     def remove_live_cell(self, idx: np.ndarray) -> None:
         self.cells[*idx] = False
+        self.live_cells = np.argwhere(self.cells)
 
-        # TODO: It's a bit annoying to have to convert the ndarrays to lists
-        # in order to remove the dead cell. Figure out a more numpy-y way to do this.
-        lc_list: list = self.live_cells.tolist()
-        lc_list.remove(idx.tolist())
-        self.live_cells = np.array(lc_list)
-
-        if self.is_first_gen or self.is_extinct():
+        if self.is_first_gen:
             self.first_gen = self.live_cells.copy()
 
     def reset(self) -> np.ndarray:
