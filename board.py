@@ -57,7 +57,6 @@ class Board(Canvas):
         # So just transpose the cells and call it a day.
         self.cells = self.cells.T
 
-    # TODO: clicking on a live cell should kill it.
     def add_cell(self, coords: tuple) -> int:
         cell = self.create_rectangle(
             *coords,
