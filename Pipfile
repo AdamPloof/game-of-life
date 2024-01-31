@@ -4,9 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-pillow = "*"
 numpy = "*"
-opencv-python = "*"
 
 [dev-packages]
 flake8 = "*"

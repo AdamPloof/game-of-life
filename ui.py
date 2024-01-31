@@ -1,8 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import N, W, S, E, SUNKEN, HORIZONTAL, VERTICAL
-import numpy as np
-import json
 
 from board import Board
 
@@ -168,21 +166,3 @@ class UserInterface:
     def run(self):
         self.root.bind('<Configure>', self.draw_board)
         self.root.mainloop()
-
-
-# def main():
-#     from gol import GameOfLife
-
-#     with open('./starting_positions/135-degree MWSS-to-G.json') as start_f:
-#         start_pos = json.load(start_f)
-
-#     starting_cells = np.asarray([(cell[0], cell[1]) for cell in start_pos])
-#     dimensions = (100, 100)
-#     game = GameOfLife(dimensions, starting_cells)
-
-#     dimensions = (100, 100)
-#     ui = UserInterface(game, dimensions)
-#     ui.run()
-
-# if __name__ == "__main__":
-#     main()
